@@ -1,18 +1,34 @@
-const Fastify = require('fastify')
-const swagger = require('@fastify/swagger')
+import { fastify } from 'fastify'
+import { fastifySwagger } from '@fastify/swagger'
+import { fastifyCors } from '@fastify/cors'
+import { validatorCompiler, serializerCompiler, ZodTypeProvider, jsonSchemaTransform } from 'fastify-type-provider-zod'
+import fastifySwaggerUi from '@fastify/swagger-ui'
+import { routes } from './routes/router'
 
-const app = Fastify()
+export const app = fastify().withTypeProvider<ZodTypeProvider>()
 
-app.register(swagger, {
-    prefix: '/api-docs',
-    swagger: {
+app.setValidatorCompiler(validatorCompiler)
+app.setSerializerCompiler(serializerCompiler)
+
+app.register(fastifyCors, { origin: '*' })
+
+app.register(fastifySwagger, {
+    openapi: {
         info: {
-            title: 'API com Fastify',
+            title: 'Anka Tech',
             version: '1.0.0'
         }
-    }
+    },
+    transform: jsonSchemaTransform
 })
 
-app.listen({port: 3000}, () => {
-    console.log('🚀 Servidor rodando em http://localhost:3000/api-docs')
+app.register(fastifySwaggerUi, {
+    routePrefix: '/api-docs'
 })
+
+app.register(routes)
+
+app.listen({port: 3001, host: '0.0.0.0'}, () => {
+    console.log('🚀 Servidor rodando em http://localhost:3001/api-docs')
+})
+

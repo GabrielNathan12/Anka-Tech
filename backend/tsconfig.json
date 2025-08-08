@@ -1,13 +1,16 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "_version": "22.0.0",
+
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "ESNext",
-    "moduleResolution": "Node",
-    "verbatimModuleSyntax": true,
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
+    "lib": ["es2024", "ESNext.Array", "ESNext.Collection", "ESNext.Iterator"],
+    "module": "nodenext",
+    "target": "es2022",
+
     "strict": true,
+    "esModuleInterop": true,
     "skipLibCheck": true,
-    "outDir": "dist"
+    "moduleResolution": "node16",
+    "outDir": "./dist"
   }
 }
