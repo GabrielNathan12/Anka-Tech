@@ -1,63 +1,40 @@
-FROM node:20-alpine AS builder
-
+# --------- STAGE 1: BUILD ---------
+FROM node:20-alpine AS build
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+# libs úteis
+RUN apk add --no-cache openssl
 
-COPY prisma ./prisma/
+# Copia manifestos primeiro (cache de deps)
+COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* ./
+RUN npm ci
 
-RUN npm install
-
+# Copia código
 COPY . .
+
+# Gera Prisma Client e faz build TS
 RUN npx prisma generate
+RUN npm run build
 
-CMD ["npm", "run", "dev"]
-
-
-# # Etapa 1: Build
-# FROM node:20-alpine AS builder
-
-# RUN npm install -g npm@10.9.3
-
-# WORKDIR /app
-
-# COPY package.json ./
-
-# RUN npm install
-
-# COPY . .
-
-# EXPOSE 3001
-
-# RUN npx prisma generate
-
-# # RUN npx prisma migrate
-
-# CMD ["sh", "-c", "npx prisma migrate deploy && npm run dev"]
-
-# Gera Prisma Client durante build
-# RUN npx prisma generate
-
-# # Compila projeto TypeScript
-# RUN npm run build
+# Remove devDeps e deixa só prod (mantendo o client gerado)
+RUN npm prune --omit=dev
 
 
-# # Etapa 2: Produção
-# FROM node:20-alpine
+# --------- STAGE 2: RUNTIME ---------
+FROM node:20-alpine AS runtime
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=8080
 
-# WORKDIR /app
+# Copia somente o necessário do build
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/prisma ./prisma
+COPY --from=build /app/package.json ./package.json
 
-# COPY --from=builder /app/package*.json ./
-# COPY --from=builder /app/node_modules ./node_modules
-# COPY --from=builder /app/.env .env
-# COPY --from=builder /app/prisma ./prisma
-# COPY --from=builder /app/dist ./dist
+EXPOSE 8080
 
-# # Copia também os arquivos gerados do Prisma Client
-# COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-# COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-
-# EXPOSE 3000
-
-# # Remove o "npx prisma generate" do CMD
-# CMD ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"]
+# Importante: as migrações precisam do schema.prisma (está em /prisma)
+# e do DATABASE_URL (injetado via docker-compose).
+# Executa migrações, depois seed (idempotente), e sobe o servidor.
+CMD sh -c "npx prisma migrate deploy && npm run seed || true && node dist/server.js"

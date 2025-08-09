@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output = "../generated/prisma_client"
 }
 
 datasource db {
@@ -14,11 +13,212 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        Int   @id   @default(autoincrement())
-  name      String
-  email     String    @unique
-  age       Int 
-  status    Boolean
-  family_perfil String
+// ---------- ENUMS ----------
+
+// Tipo do snapshot de carteira
+enum PortfolioKind {
+  CURRENT   // carteira atual do cliente
+  PLAN      // carteira/plano-alvo do cliente
+}
+
+// Classes de ativos (ajuste à sua realidade)
+enum AssetClass {
+  EQUITIES
+  FIXED_INCOME
+  CASH
+  REAL_ESTATE
+  INTERNATIONAL
+  ALTERNATIVES
+}
+
+// Tipos de metas
+enum GoalType {
+  RETIREMENT
+  SHORT_TERM
+  MEDIUM_TERM
+  OTHER
+}
+
+// Frequência de eventos (movimentações)
+enum EventFrequency {
+  ONE_TIME
+  MONTHLY
+  YEARLY
+}
+
+// Tipos de eventos
+enum EventType {
+  DEPOSIT
+  WITHDRAWAL
+  CONTRIBUTION
+  EXPENSE
+  REBALANCE
+}
+
+// Categorias de alinhamento
+enum AlignmentCategory {
+  GREEN          // > 90%
+  YELLOW_LIGHT   // 90% a 70%
+  YELLOW_DARK    // 70% a 50%
+  RED            // < 50%
+}
+
+// Tipos de seguro
+enum InsuranceType {
+  LIFE
+  DISABILITY
+}
+
+// Status genérico
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+
+// ---------- MODELS ----------
+
+model Client {
+  id             Int       @id @default(autoincrement())
+  name           String
+  email          String    @unique
+  password       String
+  age            Int?
+  status         Status    @default(ACTIVE)
+  family_perfil  String?
+
+  // Campos "cacheados" úteis para listar rapidamente
+  alignmentPercent  Decimal?  @db.Decimal(7,4)  // ex.: 0.9234 (=92.34%)
+  alignmentCategory AlignmentCategory?
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relações
+  goals          Goal[]
+  portfolios     PortfolioSnapshot[]
+  events         Event[]
+  simulations    Simulation[]
+  insurances     Insurance[]
+}
+
+model Goal {
+  id          Int       @id @default(autoincrement())
+  clientId    Int
+  type        GoalType
+  name        String
+  targetValue Decimal   @db.Decimal(18,2)
+  targetDate  DateTime
+  notes       String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  client      Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([type])
+}
+
+model PortfolioSnapshot {
+  id          Int            @id @default(autoincrement())
+  clientId    Int
+  kind        PortfolioKind
+  asOfDate    DateTime       @default(now())
+  totalValue  Decimal        @db.Decimal(18,2)
+
+  // Ex.: ao salvar um PLAN e um CURRENT novos,
+  // sua API pode recalcular e atualizar alignment no Client
+  allocations WalletAllocation[]
+
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  client      Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId, kind, asOfDate])
+  @@unique([clientId, kind, asOfDate]) // evita duplicatas por data/tipo (ajuste se preferir)
+}
+
+model WalletAllocation {
+  id           Int           @id @default(autoincrement())
+  snapshotId   Int
+  assetClass   AssetClass
+  // Percentual da classe dentro do snapshot (0–100). Armazene como 0–100 (ex.: 55.25).
+  percent      Decimal       @db.Decimal(6,3)
+
+  snapshot     PortfolioSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+
+  @@index([snapshotId])
+  @@unique([snapshotId, assetClass]) // cada classe uma vez por snapshot
+}
+
+model Event {
+  id            Int            @id @default(autoincrement())
+  clientId      Int
+  type          EventType
+  amount        Decimal        @db.Decimal(18,2)
+  frequency     EventFrequency
+  startDate     DateTime
+  endDate       DateTime?      // para recorrentes com data fim
+
+  // Para controlar execução de recorrentes (opcional)
+  executionDay    Int?         // 1-28 para mensais
+  executionMonth  Int?         // 1-12 para anuais
+  description     String?
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  client        Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([frequency, startDate])
+}
+
+model Simulation {
+  id            Int        @id @default(autoincrement())
+  clientId      Int
+  name          String?
+  version       Int        @default(1)
+
+  // Parâmetros usados
+  realRate      Decimal    @db.Decimal(6,4) @default(0.0400) // 4% a.a. padrão
+  untilYear     Int        @default(2060)
+
+  // Snapshots dos inputs e resultados
+  inputs        Json?      // pode salvar alocações/planos usados
+  // Série ano a ano: [{ "year": 2025, "value": 123456.78 }, ...]
+  resultSeries  Json?
+
+  // Alinhamento na hora da simulação (para histórico)
+  alignmentPercent  Decimal?  @db.Decimal(7,4)
+  alignmentCategory AlignmentCategory?
+
+  createdAt     DateTime   @default(now())
+
+  client        Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId, createdAt])
+}
+
+model Insurance {
+  id            Int          @id @default(autoincrement())
+  clientId      Int
+  type          InsuranceType
+  coverage      Decimal      @db.Decimal(18,2)
+  premium       Decimal?     @db.Decimal(18,2)
+  provider      String?
+  startDate     DateTime?
+  endDate       DateTime?
+  status        Status       @default(ACTIVE)
+
+  notes         String?
+
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  client        Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([type, status])
 }

@@ -12,5 +12,6 @@
     "skipLibCheck": true,
     "moduleResolution": "node16",
     "outDir": "./dist"
-  }
+  },
+  "include": ["src", "prisma/seed.ts"]
 }

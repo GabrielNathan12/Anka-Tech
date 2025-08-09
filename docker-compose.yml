@@ -1,36 +1,37 @@
 version: '3.8'
 
 services:
-
   db:
     image: postgres:15
     environment:
       POSTGRES_USER: planner
       POSTGRES_PASSWORD: plannerpw
       POSTGRES_DB: plannerdb
-    ports:
-      - '5432:5432'
     volumes:
       - pg_data:/var/lib/postgresql/data
-  
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d appdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   backend:
     build: ./backend
-    ports:
-      - '3001:3001'
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       DATABASE_URL: postgresql://planner:plannerpw@db:5432/plannerdb
+      NODE_ENV: development
+      PORT: 8080
+    command: sh -lc "npm install && npm run dev"
+    ports:
+      - "8080:8080"
     volumes:
-      - .:/app
-      - /app/node_modules
-
-  # frontend:
-  #   build: ./frontend
-  #   depends_on:
-  #   - backend
-  #   ports:
-  #   - "3000:3000"
-
+      - ./backend:/app           # código do host -> container
+      - /app/node_modules        # mantém node_modules do container
+      
 volumes:
   pg_data:

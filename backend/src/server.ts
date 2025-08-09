@@ -28,7 +28,7 @@ app.register(fastifySwaggerUi, {
 
 app.register(routes)
 
-app.listen({port: 3001, host: '0.0.0.0'}, () => {
-    console.log('🚀 Servidor rodando em http://localhost:3001/api-docs')
+app.listen({port: 8080, host: '0.0.0.0'}, () => {
+    console.log('🚀 Servidor rodando em http://localhost:8080/api-docs')
 })
 

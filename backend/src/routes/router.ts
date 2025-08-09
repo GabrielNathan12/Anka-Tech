@@ -1,43 +1,52 @@
 import type { FastifyInstance } from "fastify";
-import { userSchema } from "../schemas/userSchema";
-import { ZodError } from "zod";
-import { getUsers } from '../controllers/userControllers'
+import { clientCreateSchema, clientIdParams, listQuery } from "../schemas/clientSchema";
+import { createClient, deleteClient, getClientById, getClients } from '../controllers/clientControllers'
+import { validateBody, validateParams, validateQuery  } from "../plugins/validate";
 
 export async function routes(app:FastifyInstance) {
-    app.get('/users',
+    app.get('/clients', 
         {
             schema: {
-                tags: ['users'],
+                tags: ['clients'],
                 description: 'List all users'
-            }
-        }, 
-        getUsers
+            },
+            preValidation: validateQuery(listQuery)
+        },
+
+        getClients
     )
 
-    app.post('/users',
+    app.get('/clients/:id',
+        {
+            schema: {
+                tags: ['clients'],
+                description: 'Find client by id',
+                params: clientIdParams
+            },
+                preValidation : validateParams(clientIdParams)
+            },
+            getClientById
+        )
+
+    app.post('/clients',
         {
             schema: {
                 description: 'Create new user',
-                tags: ['users'],
-                body: userSchema
+                tags: ['clients'],
+                body: clientCreateSchema
             },
-            preValidation: (request, reply, done) => {
-                try {
-                    userSchema.parse(request.body)
-                    done()
-                } catch (err) {
-                    if(err instanceof ZodError) {
-                        const formattedErrors = err.message
-                          reply.status(400).send({
-                            detail: JSON.parse(formattedErrors),
-                        })
-                    }
-
-                    reply.status(400).send({ detail: err })
-                }
-            }
-    }, 
-    async (request, reply) => {
-        return {message: 'Criado com sucesso'}  
-    })
+            preValidation: validateBody(clientCreateSchema)
+        },
+        createClient
+    )
+    app.delete('/clients/:id',
+        {
+            schema: {
+                tags: ["clients"],
+                description: "Delete client"
+            },
+            preValidation: validateParams(clientIdParams)
+        },
+        deleteClient
+    );
 }
