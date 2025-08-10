@@ -19,21 +19,22 @@ export async function getClients(req: FastifyRequest, reply: FastifyReply) {
     
     const where = search
         ? {
-            OR: [
-            { name: { contains: search, mode: "insensitive" } },
-            { email: { contains: search, mode: "insensitive" } }
+            OR: 
+            [
+                { name: { contains: search, mode: "insensitive" } },
+                { email: { contains: search, mode: "insensitive" } }
             ]
         }
     : {}
 
     const [total, items] = await Promise.all([
-        prisma.client.count({ where }),
-        prisma.client.findMany({
-        where,
-        select: clientSelect,
-        orderBy: { id: "asc" },
-        skip: (page - 1) * perPage,
-        take: perPage
+            prisma.client.count({ where }),
+            prisma.client.findMany({
+            where,
+            select: clientSelect,
+            orderBy: { id: "asc" },
+            skip: (page - 1) * perPage,
+            take: perPage
         })
     ])
 
@@ -59,7 +60,7 @@ export async function createClient(req: FastifyRequest, reply: FastifyReply) {
     const body = req.body as any
 
     try {
-        const created = await prisma.client.create({
+        await prisma.client.create({
             data: {
                 name: body.name,
                 email: body.email,
@@ -86,7 +87,7 @@ export async function updateClient(req: FastifyRequest, reply: FastifyReply) {
     const body = req.body as any
 
     try {
-        const updated = await prisma.client.update({
+        await prisma.client.update({
             where: {id: Number(id)},
              data: {
                 name: body.name,
@@ -108,6 +109,7 @@ export async function updateClient(req: FastifyRequest, reply: FastifyReply) {
             return reply.status(409).send({ error: "Email already exists" })
         }
         req.log.error(error)
+
         return reply.status(500).send({ error: "Erro update client" })
     }
 }

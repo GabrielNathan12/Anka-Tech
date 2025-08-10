@@ -15,13 +15,11 @@ datasource db {
 
 // ---------- ENUMS ----------
 
-// Tipo do snapshot de carteira
 enum PortfolioKind {
-  CURRENT   // carteira atual do cliente
-  PLAN      // carteira/plano-alvo do cliente
+  CURRENT 
+  PLAN      
 }
 
-// Classes de ativos (ajuste à sua realidade)
 enum AssetClass {
   EQUITIES
   FIXED_INCOME
@@ -31,7 +29,6 @@ enum AssetClass {
   ALTERNATIVES
 }
 
-// Tipos de metas
 enum GoalType {
   RETIREMENT
   SHORT_TERM
@@ -39,14 +36,12 @@ enum GoalType {
   OTHER
 }
 
-// Frequência de eventos (movimentações)
 enum EventFrequency {
   ONE_TIME
   MONTHLY
   YEARLY
 }
 
-// Tipos de eventos
 enum EventType {
   DEPOSIT
   WITHDRAWAL
@@ -55,7 +50,6 @@ enum EventType {
   REBALANCE
 }
 
-// Categorias de alinhamento
 enum AlignmentCategory {
   GREEN          // > 90%
   YELLOW_LIGHT   // 90% a 70%
@@ -63,13 +57,11 @@ enum AlignmentCategory {
   RED            // < 50%
 }
 
-// Tipos de seguro
 enum InsuranceType {
   LIFE
   DISABILITY
 }
 
-// Status genérico
 enum Status {
   ACTIVE
   INACTIVE
@@ -86,14 +78,12 @@ model Client {
   status         Status    @default(ACTIVE)
   family_perfil  String?
 
-  // Campos "cacheados" úteis para listar rapidamente
-  alignmentPercent  Decimal?  @db.Decimal(7,4)  // ex.: 0.9234 (=92.34%)
+  alignmentPercent  Decimal?  @db.Decimal(7,4)  
   alignmentCategory AlignmentCategory?
 
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  // Relações
   goals          Goal[]
   portfolios     PortfolioSnapshot[]
   events         Event[]
@@ -126,8 +116,6 @@ model PortfolioSnapshot {
   asOfDate    DateTime       @default(now())
   totalValue  Decimal        @db.Decimal(18,2)
 
-  // Ex.: ao salvar um PLAN e um CURRENT novos,
-  // sua API pode recalcular e atualizar alignment no Client
   allocations WalletAllocation[]
 
   createdAt   DateTime       @default(now())
@@ -136,20 +124,19 @@ model PortfolioSnapshot {
   client      Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   @@index([clientId, kind, asOfDate])
-  @@unique([clientId, kind, asOfDate]) // evita duplicatas por data/tipo (ajuste se preferir)
+  @@unique([clientId, kind, asOfDate])
 }
 
 model WalletAllocation {
   id           Int           @id @default(autoincrement())
   snapshotId   Int
   assetClass   AssetClass
-  // Percentual da classe dentro do snapshot (0–100). Armazene como 0–100 (ex.: 55.25).
   percent      Decimal       @db.Decimal(6,3)
 
   snapshot     PortfolioSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
 
   @@index([snapshotId])
-  @@unique([snapshotId, assetClass]) // cada classe uma vez por snapshot
+  @@unique([snapshotId, assetClass]) 
 }
 
 model Event {
@@ -159,11 +146,10 @@ model Event {
   amount        Decimal        @db.Decimal(18,2)
   frequency     EventFrequency
   startDate     DateTime
-  endDate       DateTime?      // para recorrentes com data fim
+  endDate       DateTime?    
 
-  // Para controlar execução de recorrentes (opcional)
-  executionDay    Int?         // 1-28 para mensais
-  executionMonth  Int?         // 1-12 para anuais
+  executionDay    Int?         
+  executionMonth  Int?       
   description     String?
 
   createdAt     DateTime       @default(now())
@@ -181,16 +167,12 @@ model Simulation {
   name          String?
   version       Int        @default(1)
 
-  // Parâmetros usados
-  realRate      Decimal    @db.Decimal(6,4) @default(0.0400) // 4% a.a. padrão
+  realRate      Decimal    @db.Decimal(6,4) @default(0.0400)
   untilYear     Int        @default(2060)
 
-  // Snapshots dos inputs e resultados
-  inputs        Json?      // pode salvar alocações/planos usados
-  // Série ano a ano: [{ "year": 2025, "value": 123456.78 }, ...]
+  inputs        Json? 
   resultSeries  Json?
 
-  // Alinhamento na hora da simulação (para histórico)
   alignmentPercent  Decimal?  @db.Decimal(7,4)
   alignmentCategory AlignmentCategory?
 

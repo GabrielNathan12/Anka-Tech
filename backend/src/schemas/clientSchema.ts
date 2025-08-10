@@ -1,11 +1,10 @@
-// src/schemas/user-schema.ts
 import { z } from "zod"
 
 export const clientBase = z.object({
     name: z.string().min(1, 'O nome é obrigatório'),
     email: z.string().email("Email inválido"),
     age: z.number().int().min(0).max(150),
-    status: z.boolean(),
+    status: z.string().default('ACTIVE'),
     family_perfil: z.string().min(1, "O perfil familiar é obrigatório")
 })
 
