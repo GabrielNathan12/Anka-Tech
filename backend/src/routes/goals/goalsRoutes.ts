@@ -9,9 +9,11 @@ export async function goalsRoutes(app:FastifyInstance) {
             schema: {
                 tags: ['goals'],
                 description: 'Create new goal',
-                body: goalCreateSchema
+                body: goalCreateSchema,
+                security: [{ bearerAuth: [] }] 
             }, 
-            preValidation: validateBody(goalCreateSchema)
+            preValidation: validateBody(goalCreateSchema),
+            preHandler: app.auth.role(["ADVISOR"])
         },
         createGoal
     )
@@ -21,9 +23,11 @@ export async function goalsRoutes(app:FastifyInstance) {
             schema: {
                 tags: ['goals'],
                 description: 'Return goals by client',
-                params: goalParmas
+                params: goalParmas,
+                security: [{ bearerAuth: [] }] 
             },
-            preValidation: validateParams(goalParmas)
+            preValidation: validateParams(goalParmas),
+            preHandler: app.auth.verify
         },
         listGoals
     )

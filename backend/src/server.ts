@@ -17,13 +17,26 @@ app.register(fastifySwagger, {
         info: {
             title: 'Anka Tech',
             version: '1.0.0'
+        },
+        components: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: "http",
+                    scheme: "bearer",
+                    bearerFormat: "JWT"
+                }
+            }
         }
     },
     transform: jsonSchemaTransform
 })
 
 app.register(fastifySwaggerUi, {
-    routePrefix: '/api-docs'
+    routePrefix: '/api-docs',
+    uiConfig: {
+        docExpansion: 'list',
+        deepLinking: true
+    }
 })
 
 app.register(registerRoutes)

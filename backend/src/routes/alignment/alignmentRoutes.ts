@@ -9,9 +9,11 @@ export async function clientsAlignmentRoutes(app:FastifyInstance) {
             schema: {
                 tags: ['alignment'],
                 description: 'Alignment by client',
-                params: clientIdParams
+                params: clientIdParams,
+                security: [{ bearerAuth: [] }] 
             },
-            preValidation: validateParams(clientIdParams)
+            preValidation: validateParams(clientIdParams),
+            preHandler: app.auth.verify
         }
         , 
         getClientAlignment

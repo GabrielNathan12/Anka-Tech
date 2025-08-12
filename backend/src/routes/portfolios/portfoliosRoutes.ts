@@ -10,9 +10,11 @@ export async function portfoliosRoutes(app:FastifyInstance) {
             schema: {
                 tags: ['portfolios'],
                 description: 'Create new portfolio',
-                body: portfolioCreateSchema
+                body: portfolioCreateSchema,
+                security: [{ bearerAuth: [] }] 
             }, 
-            preValidation: validateBody(portfolioCreateSchema)
+            preValidation: validateBody(portfolioCreateSchema),
+            preHandler: app.auth.role(["ADVISOR"])
         },
         createPortfolioSnapshot
     )
@@ -22,9 +24,11 @@ export async function portfoliosRoutes(app:FastifyInstance) {
             schema: {
                 tags: ['portfolios'],
                 description: 'Return goals by client',
-                querystring: portfolioListQuery
+                querystring: portfolioListQuery,
+                security: [{ bearerAuth: [] }] 
             },
-            preValidation: validateQuery(portfolioListQuery)
+            preValidation: validateQuery(portfolioListQuery),
+            preHandler: app.auth.verify
         },
         listPortfolios
     )

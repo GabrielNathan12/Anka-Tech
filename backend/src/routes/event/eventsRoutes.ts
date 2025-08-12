@@ -9,9 +9,11 @@ export async function eventRoutes(app:FastifyInstance) {
             schema: {
                 tags: ['events'],
                 description: 'List events',
-                querystring: eventListQuery
+                querystring: eventListQuery,
+                security: [{ bearerAuth: [] }] 
             },
-            preValidation: validateQuery(eventListQuery)
+            preValidation: validateQuery(eventListQuery),
+            preHandler: app.auth.verify
         },
         listEvents
     )
@@ -21,9 +23,11 @@ export async function eventRoutes(app:FastifyInstance) {
             schema: {
                 tags: ['events'],
                 description: 'Get event by id',
-                params: eventIdParams
+                params: eventIdParams,
+                security: [{ bearerAuth: [] }] 
             },
-            preValidation: validateParams(eventIdParams)
+            preValidation: validateParams(eventIdParams),
+            preHandler: app.auth.verify
         }, 
         getEventById
     )
@@ -33,9 +37,11 @@ export async function eventRoutes(app:FastifyInstance) {
             schema: {
                 tags: ['events'],
                 description: 'Create new event',
-                body: eventCreateSchema
+                body: eventCreateSchema,
+                security: [{ bearerAuth: [] }] 
             },
-            preValidation: validateBody(eventCreateSchema)
+            preValidation: validateBody(eventCreateSchema),
+            preHandler: app.auth.role(["ADVISOR"])
         }, 
         createEvent
     )
@@ -46,9 +52,11 @@ export async function eventRoutes(app:FastifyInstance) {
                 tags: ['events'],
                 description: 'Update event',
                 body: eventUpdateSchema,
-                params: eventIdParams
+                params: eventIdParams,
+                security: [{ bearerAuth: [] }] 
             },
-            preValidation: [validateParams(eventIdParams), validateBody(eventUpdateSchema)]
+            preValidation: [validateParams(eventIdParams), validateBody(eventUpdateSchema)],
+            preHandler: app.auth.role(["ADVISOR"])
         },
         updateEvent
     )
@@ -58,9 +66,11 @@ export async function eventRoutes(app:FastifyInstance) {
             schema: {
                 tags: ['events'],
                 description: 'Delete event by id',
-                params: eventIdParams
+                params: eventIdParams,
+                security: [{ bearerAuth: [] }] 
             },
-            preValidation: validateParams(eventIdParams)
+            preValidation: validateParams(eventIdParams),
+            preHandler: app.auth.role(["ADVISOR"])
         },
         deleteEvent
     )

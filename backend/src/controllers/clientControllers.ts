@@ -1,6 +1,5 @@
 import type { FastifyReply, FastifyRequest } from "fastify"
 import { prisma } from '../lib/utils/prisma'
-import { Prisma } from "@prisma/client";
 import { clientDTO } from "../schemas/clientSchema";
 
 const clientSelect = {
@@ -21,8 +20,8 @@ export async function getClients(req: FastifyRequest, reply: FastifyReply) {
         ? {
             OR: 
             [
-                { name: { contains: search, mode: "insensitive" } },
-                { email: { contains: search, mode: "insensitive" } }
+                { name: { contains: search, mode: 'insensitive' as const } },
+                { email: { contains: search, mode: "insensitive" as const} }
             ]
         }
     : {}

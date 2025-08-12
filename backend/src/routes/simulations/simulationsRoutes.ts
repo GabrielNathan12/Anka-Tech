@@ -10,9 +10,11 @@ export async function simulationsRoutes(app: FastifyInstance) {
                 tags: ["simulations"], 
                 description: "Create a new simulation for a client",
                 params: simulationByClientParams,
-                body: simulationCreateBody
+                body: simulationCreateBody,
+                security: [{ bearerAuth: [] }] 
             },
-            preValidation: [validateParams(simulationByClientParams), validateBody(simulationCreateBody)]
+            preValidation: [validateParams(simulationByClientParams), validateBody(simulationCreateBody)],
+            preHandler: app.auth.role(["ADVISOR"])
         },
         createSimulation
     )
@@ -23,9 +25,11 @@ export async function simulationsRoutes(app: FastifyInstance) {
                 tags: ["simulations"], 
                 description: "List simulations for a client",
                 querystring: simulationListQuery,
-                params: simulationByClientParams
+                params: simulationByClientParams,
+                security: [{ bearerAuth: [] }] 
             },
-            preValidation: [validateParams(simulationByClientParams), validateQuery(simulationListQuery)]
+            preValidation: [validateParams(simulationByClientParams), validateQuery(simulationListQuery)],
+            preHandler: app.auth.verify
         },
         listSimulations
     )
@@ -35,9 +39,11 @@ export async function simulationsRoutes(app: FastifyInstance) {
             schema: { 
                 tags: ["simulations"], 
                 description: "Get a simulation by id",
-                params: simulationParams
+                params: simulationParams,
+                security: [{ bearerAuth: [] }] 
             },
-            preValidation: validateParams(simulationParams)
+            preValidation: validateParams(simulationParams),
+            preHandler: app.auth.verify
         },
         getSimulationById
     )

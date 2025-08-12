@@ -10,9 +10,11 @@ export async function insurancesRoutes(app: FastifyInstance) {
                 tags: ["insurances"],
                 description: "List insurances by client",
                 params: insuranceByClientParams,
-                querystring: insuranceListQuery
+                querystring: insuranceListQuery,
+                security: [{ bearerAuth: [] }] 
             },
-            preValidation: [validateParams(insuranceByClientParams), validateQuery(insuranceListQuery)]
+            preValidation: [validateParams(insuranceByClientParams), validateQuery(insuranceListQuery)],
+            preHandler: app.auth.verify
         },
         listInsurances
     )
@@ -23,9 +25,11 @@ export async function insurancesRoutes(app: FastifyInstance) {
                 tags: ["insurances"], 
                 description: "Create insurance for client",
                 params: insuranceByClientParams,
-                body: insuranceCreateSchema
+                body: insuranceCreateSchema,
+                security: [{ bearerAuth: [] }] 
             },
-            preValidation: [validateParams(insuranceByClientParams), validateBody(insuranceCreateSchema)]
+            preValidation: [validateParams(insuranceByClientParams), validateBody(insuranceCreateSchema)],
+            preHandler: app.auth.role(["ADVISOR"])
         },
         createInsurance
     )
@@ -35,9 +39,11 @@ export async function insurancesRoutes(app: FastifyInstance) {
             schema: { 
                 tags: ["insurances"], 
                 description: "Coverage/premium distribution by type",
-                params: insuranceByClientParams
+                params: insuranceByClientParams,
+                security: [{ bearerAuth: [] }] 
             },
-            preValidation: validateParams(insuranceByClientParams)
+            preValidation: validateParams(insuranceByClientParams),
+            preHandler: app.auth.verify
         },
         getInsuranceDistribution
     )
@@ -47,9 +53,11 @@ export async function insurancesRoutes(app: FastifyInstance) {
             schema: { 
                 tags: ["insurances"], 
                 description: "Get insurance by id",
-                params: insuranceIdParams
+                params: insuranceIdParams,
+                security: [{ bearerAuth: [] }] 
             },
-            preValidation: validateParams(insuranceIdParams)
+            preValidation: validateParams(insuranceIdParams),
+            preHandler: app.auth.verify
         },
         getInsuranceById
     )
@@ -60,9 +68,11 @@ export async function insurancesRoutes(app: FastifyInstance) {
                 tags: ["insurances"], 
                 description: "Update insurance",
                 params: insuranceIdParams,
-                body: insuranceUpdateSchema
+                body: insuranceUpdateSchema,
+                security: [{ bearerAuth: [] }] 
             },
-            preValidation: [validateParams(insuranceIdParams), validateBody(insuranceUpdateSchema)]
+            preValidation: [validateParams(insuranceIdParams), validateBody(insuranceUpdateSchema)],
+            preHandler: app.auth.role(["ADVISOR"])
         },
         updateInsurance
     )
@@ -72,9 +82,11 @@ export async function insurancesRoutes(app: FastifyInstance) {
             schema: { 
                 tags: ["insurances"], 
                 description: "Delete insurance",
-                params: insuranceIdParams
+                params: insuranceIdParams,
+                security: [{ bearerAuth: [] }] 
             },
-            preValidation: validateParams(insuranceIdParams)
+            preValidation: validateParams(insuranceIdParams),
+            preHandler: app.auth.role(["ADVISOR"])
         },
         deleteInsurance
     )

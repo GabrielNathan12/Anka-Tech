@@ -3,7 +3,7 @@ import { prisma } from "../lib/utils/prisma";
 type Event = {
     id: number
     clientId: number
-    type: "DEPOSIT" | "CONTRIBUTION" | "WITHDRAWAL" | "FEE"
+    type: "DEPOSIT" | "CONTRIBUTION" | "WITHDRAWAL" | "EXPENSE" | "REBALANCE"
     frequency: "ONE_TIME" | "MONTHLY" | "YEARLY"
     amount: number
     startDate: Date

@@ -8,8 +8,13 @@ import { projectionRoutes } from "./projection/projectionRoutes";
 import { eventRoutes } from "./event/eventsRoutes";
 import { simulationsRoutes } from "./simulations/simulationsRoutes";
 import { insurancesRoutes } from "./insurances/insurancesRoutes";
+import { authRoutes } from "./auth/authRoutes";
+import authPlugin from "../middleware/auth"
+import { suggestionsRoutes } from "./suggestions/suggestionsRoutes";
 
 export async function registerRoutes(params: FastifyInstance) {
+    await app.register(authPlugin)
+    await app.register(authRoutes)
     await app.register(clientesRoutes)
     await app.register(goalsRoutes)
     await app.register(portfoliosRoutes)
@@ -18,4 +23,5 @@ export async function registerRoutes(params: FastifyInstance) {
     await app.register(eventRoutes)
     await app.register(simulationsRoutes)
     await app.register(insurancesRoutes)
+    await app.register(suggestionsRoutes)
 }

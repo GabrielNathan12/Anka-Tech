@@ -4,12 +4,16 @@ import { z, ZodTypeAny } from "zod";
 type Done = (err?: Error) => void
 
 function formatZodError(error: z.ZodError) {
-    const { fieldErrors } = error.flatten()
+    const { fieldErrors, formErrors } = error.flatten()
+    const typedFieldErrors = fieldErrors as Record<string, string[] | undefined>;
 
-    return Object.entries(fieldErrors).map(([field, messages]) => ({
-        field,
-        message: messages?.[0] ?? "Invalid value"
-    }))
+    const out = Object.keys(typedFieldErrors).map((field) => {
+        const msgs = typedFieldErrors[field]
+        return { field, message: msgs?.[0] ?? "Invalid value" }
+    })
+
+    return out.length ? out : formErrors.map((m) => ({ field: "_root", message: m }))
+
 }
 
 export function validateBody(schema: ZodTypeAny) {
