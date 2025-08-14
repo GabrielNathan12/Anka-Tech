@@ -72,6 +72,7 @@ describe("Projeção Patrimonial", () => {
     it("Projeção pura (includeEvents=false) bate a fórmula anual composta", async() => {
         const app = await getTestApp()
         const client = await createSimpleClient({email: "pure_projection@test.com"})
+
         await createSimplePostCurrentSnapshot(client.id,  "2025-01-01T00:00:00.000Z", 100000)
 
         const res = await request(app.server)
@@ -81,12 +82,14 @@ describe("Projeção Patrimonial", () => {
         expect(res.status).toBe(200)
 
         const series = res.body.series as Array<{ year: number; value: number }>
-        
+
         expect(series.at(0)?.year).toBe(2025)
         expect(series.at(-1)?.year).toBe(2027)
 
-        const expected = 100000 * Math.pow(1.05, 2)
-        expect(series.at(-1)?.value).toBeCloseTo(expected, 2)
+        const periods = 2027 - 2025 + 1
+        const expected = 100000 * Math.pow(1.05, periods)
+        expect(series.at(-1)?.value).toBeCloseTo(expected, 2);
+
     })
 
     it("includeEvents=true & mode=yearly agrega fluxos anuais corretamente", async() => {
@@ -111,56 +114,55 @@ describe("Projeção Patrimonial", () => {
             },
         })
 
-        console.log('events count', await prisma.event.count({ where: { clientId: client.id } }));
-
         const base = await request(app.server)
                             .get(`/${client.id}/projection?rate=0.05&startYear=2025&untilYear=2025&includeEvents=false`)
                             .set("authorization", `Bearer ${advisorToken}`)
 
-        expect(base.status).toBe(200);
-        expect(base.body.startYear).toBe(2025);   // 👈 garante
-        expect(base.body.untilYear).toBe(2025);
-        expect(base.body.points).toBe(1);
+        expect(base.status).toBe(200)
+        expect(base.body.startYear).toBe(2025)
+        expect(base.body.untilYear).toBe(2025)
+        expect(base.body.points).toBe(1)
 
         const withEv = await request(app.server)
                             .get(`/${client.id}/projection?rate=0.05&startYear=2025&untilYear=2025&includeEvents=true&mode=yearly`)
                             .set("authorization", `Bearer ${advisorToken}`)
         
-        expect(withEv.status).toBe(200);
-        expect(withEv.body.points).toBe(1);
+        expect(withEv.status).toBe(200)
+        expect(withEv.body.points).toBe(1)
 
         const baseEnd = base.body.series.at(-1).value
         const withEnd = withEv.body.series.at(-1).value
 
-        expect(baseEnd).toBeCloseTo(105000, 2);
-        expect(withEnd - baseEnd).toBeCloseTo(1200, 2);
+        expect(baseEnd).toBeCloseTo(105000, 2)
+        expect(withEnd - baseEnd).toBeCloseTo(1200, 2)
     
     })
 
-    
-//   it("includeEvents=true & startYear personalizado", async () => {
-//     const c = await createClient("events_start@test.com");
-//     await postCurrentSnapshot(c.id, "2024-01-01T00:00:00.000Z", 50000);
+    it("includeEvents=true & startYear personalizado", async () => {
+        const app = await getTestApp()
+        const client = await createSimpleClient({email: "events_start@test.com"})
+        await createSimplePostCurrentSnapshot(client.id, "2024-01-01T00:00:00.000Z", 5000)
 
-//     // evento anual 1000 por 3 anos
-//     await prisma.event.create({
-//       data: {
-//         clientId: c.id,
-//         type: "CONTRIBUTION",
-//         amount: D(1000),
-//         frequency: "YEARLY",
-//         startDate: new Date("2025-01-01"),
-//         endDate: new Date("2027-12-31"),
-//         description: "Aporte anual 1000 (3 anos)",
-//       },
-//     });
+        await prisma.event.create({
+            data: {
+                clientId: client.id,
+                type: "CONTRIBUTION",
+                amount: Prisma.Decimal(1000),
+                frequency: "YEARLY",
+                startDate: new Date("2025-01-01"),
+                endDate: new Date("2027-12-31"),
+                description: "Aporte anual 1000 (3 anos)",
+            }
+        })
 
-//     const res = await request(app.server).get(
-//       `/${c.id}/projection?rate=0.04&startYear=2025&untilYear=2027&includeEvents=true&mode=yearly`
-//     );
-//     expect(res.status).toBe(200);
-//     expect(res.body.startYear).toBe(2025);
-//     expect(res.body.untilYear).toBe(2027);
-//     expect(res.body.series.length).toBe(3);
-//   });
+        const res = await request(app.server)
+            .get(`/${client.id}/projection?rate=0.04&startYear=2025&untilYear=2027&includeEvents=true&mode=yearly`)
+            .set("authorization", `Bearer ${advisorToken}`)
+        
+        expect(res.status).toBe(200)
+        expect(res.body.startYear).toBe(2025)
+        expect(res.body.untilYear).toBe(2027)
+        expect(res.body.series.length).toBe(3)
+    })
+
 })

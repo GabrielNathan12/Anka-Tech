@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { validateBody, validateParams, validateQuery } from "../../plugins/validate";
-import { simulationByClientParams, simulationCreateBody, simulationListQuery, simulationParams } from "../../schemas/simulationSchema";
+import { simulationCreateBody, simulationListQuery, simulationParams, simulationIdParams } from "../../schemas/simulationSchema";
 import { createSimulation, listSimulations, getSimulationById } from "../../controllers/simulationControllers";
 
 export async function simulationsRoutes(app: FastifyInstance) {
@@ -9,11 +9,11 @@ export async function simulationsRoutes(app: FastifyInstance) {
             schema: { 
                 tags: ["simulations"], 
                 description: "Create a new simulation for a client",
-                params: simulationByClientParams,
+                params: simulationParams,
                 body: simulationCreateBody,
                 security: [{ bearerAuth: [] }] 
             },
-            preValidation: [validateParams(simulationByClientParams), validateBody(simulationCreateBody)],
+            preValidation: [validateParams(simulationParams), validateBody(simulationCreateBody)],
             preHandler: app.auth.role(["ADVISOR"])
         },
         createSimulation
@@ -25,10 +25,10 @@ export async function simulationsRoutes(app: FastifyInstance) {
                 tags: ["simulations"], 
                 description: "List simulations for a client",
                 querystring: simulationListQuery,
-                params: simulationByClientParams,
+                params: simulationParams,
                 security: [{ bearerAuth: [] }] 
             },
-            preValidation: [validateParams(simulationByClientParams), validateQuery(simulationListQuery)],
+            preValidation: [validateParams(simulationParams), validateQuery(simulationListQuery)],
             preHandler: app.auth.verify
         },
         listSimulations
@@ -39,10 +39,10 @@ export async function simulationsRoutes(app: FastifyInstance) {
             schema: { 
                 tags: ["simulations"], 
                 description: "Get a simulation by id",
-                params: simulationParams,
+                params: simulationIdParams,
                 security: [{ bearerAuth: [] }] 
             },
-            preValidation: validateParams(simulationParams),
+            preValidation: validateParams(simulationIdParams),
             preHandler: app.auth.verify
         },
         getSimulationById

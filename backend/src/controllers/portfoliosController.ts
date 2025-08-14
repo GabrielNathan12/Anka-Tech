@@ -69,7 +69,7 @@ export async function createPortfolioSnapshot(req: FastifyRequest, reply: Fastif
 
         if(error?.issues) {
             const erros = error.issues.map((i: any) => ({ field: i.path.join("."), message: i.message}))
-            return reply.status(400).send({ error })
+            return reply.status(400).send({ erros })
         }
         req.log.error(error)
 

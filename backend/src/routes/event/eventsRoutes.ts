@@ -4,7 +4,7 @@ import { eventCreateSchema, eventIdParams, eventListQuery, eventUpdateSchema } f
 import { validateBody, validateParams, validateQuery } from "../../plugins/validate";
 
 export async function eventRoutes(app:FastifyInstance) {
-    app.get('/event', 
+    app.get('/events', 
         {
             schema: {
                 tags: ['events'],
@@ -18,7 +18,7 @@ export async function eventRoutes(app:FastifyInstance) {
         listEvents
     )
 
-    app.get('/event/:id', 
+    app.get('/events/:id', 
         {
             schema: {
                 tags: ['events'],
@@ -32,7 +32,7 @@ export async function eventRoutes(app:FastifyInstance) {
         getEventById
     )
 
-    app.post('/event', 
+    app.post('/events', 
         {
             schema: {
                 tags: ['events'],
@@ -46,7 +46,7 @@ export async function eventRoutes(app:FastifyInstance) {
         createEvent
     )
 
-    app.put('/event/:id', 
+    app.put('/events/:id', 
         {
             schema: {
                 tags: ['events'],
@@ -61,7 +61,7 @@ export async function eventRoutes(app:FastifyInstance) {
         updateEvent
     )
 
-    app.delete('/event/:id', 
+    app.delete('/events/:id', 
         {
             schema: {
                 tags: ['events'],
