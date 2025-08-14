@@ -63,7 +63,6 @@ export async function createClient(req: FastifyRequest, reply: FastifyReply) {
             data: {
                 name: body.name,
                 email: body.email,
-                password: body.password,
                 age: body.age,
                 status: body.status,
                 family_perfil: body.family_perfil
@@ -91,7 +90,6 @@ export async function updateClient(req: FastifyRequest, reply: FastifyReply) {
              data: {
                 name: body.name,
                 email: body.email,
-                password: body.password,
                 age: body.age,
                 status: body.status,
                 family_perfil: body.family_perfil

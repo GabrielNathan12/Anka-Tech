@@ -1,13 +1,6 @@
-/*
-  Warnings:
+-- CreateEnum
+CREATE TYPE "public"."UserRole" AS ENUM ('ADVISOR', 'VIEWER');
 
-  - You are about to drop the `Clients` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Events` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Goals` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Simulations` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `wallet` table. If the table is not empty, all the data it contains will be lost.
-
-*/
 -- CreateEnum
 CREATE TYPE "public"."PortfolioKind" AS ENUM ('CURRENT', 'PLAN');
 
@@ -21,7 +14,7 @@ CREATE TYPE "public"."GoalType" AS ENUM ('RETIREMENT', 'SHORT_TERM', 'MEDIUM_TER
 CREATE TYPE "public"."EventFrequency" AS ENUM ('ONE_TIME', 'MONTHLY', 'YEARLY');
 
 -- CreateEnum
-CREATE TYPE "public"."EventType" AS ENUM ('DEPOSIT', 'WITHDRAWAL', 'CONTRIBUTION', 'EXPENSE', 'REBALANCE');
+CREATE TYPE "public"."EventType" AS ENUM ('DEPOSIT', 'WITHDRAWAL', 'CONTRIBUTION', 'EXPENSE');
 
 -- CreateEnum
 CREATE TYPE "public"."AlignmentCategory" AS ENUM ('GREEN', 'YELLOW_LIGHT', 'YELLOW_DARK', 'RED');
@@ -32,27 +25,24 @@ CREATE TYPE "public"."InsuranceType" AS ENUM ('LIFE', 'DISABILITY');
 -- CreateEnum
 CREATE TYPE "public"."Status" AS ENUM ('ACTIVE', 'INACTIVE');
 
--- DropTable
-DROP TABLE "public"."Clients";
+-- CreateTable
+CREATE TABLE "public"."User" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "role" "public"."UserRole" NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
--- DropTable
-DROP TABLE "public"."Events";
-
--- DropTable
-DROP TABLE "public"."Goals";
-
--- DropTable
-DROP TABLE "public"."Simulations";
-
--- DropTable
-DROP TABLE "public"."wallet";
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "public"."Client" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
-    "password" TEXT NOT NULL,
     "age" INTEGER,
     "status" "public"."Status" NOT NULL DEFAULT 'ACTIVE',
     "family_perfil" TEXT,
@@ -130,8 +120,6 @@ CREATE TABLE "public"."Simulation" (
     "untilYear" INTEGER NOT NULL DEFAULT 2060,
     "inputs" JSONB,
     "resultSeries" JSONB,
-    "alignmentPercent" DECIMAL(7,4),
-    "alignmentCategory" "public"."AlignmentCategory",
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Simulation_pkey" PRIMARY KEY ("id")
@@ -156,6 +144,9 @@ CREATE TABLE "public"."Insurance" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "public"."User"("email");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Client_email_key" ON "public"."Client"("email");
 
 -- CreateIndex
@@ -163,6 +154,9 @@ CREATE INDEX "Goal_clientId_idx" ON "public"."Goal"("clientId");
 
 -- CreateIndex
 CREATE INDEX "Goal_type_idx" ON "public"."Goal"("type");
+
+-- CreateIndex
+CREATE INDEX "Goal_clientId_targetDate_idx" ON "public"."Goal"("clientId", "targetDate");
 
 -- CreateIndex
 CREATE INDEX "PortfolioSnapshot_clientId_kind_asOfDate_idx" ON "public"."PortfolioSnapshot"("clientId", "kind", "asOfDate");
@@ -183,13 +177,22 @@ CREATE INDEX "Event_clientId_idx" ON "public"."Event"("clientId");
 CREATE INDEX "Event_frequency_startDate_idx" ON "public"."Event"("frequency", "startDate");
 
 -- CreateIndex
+CREATE INDEX "Event_clientId_startDate_idx" ON "public"."Event"("clientId", "startDate");
+
+-- CreateIndex
 CREATE INDEX "Simulation_clientId_createdAt_idx" ON "public"."Simulation"("clientId", "createdAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Simulation_clientId_version_key" ON "public"."Simulation"("clientId", "version");
 
 -- CreateIndex
 CREATE INDEX "Insurance_clientId_idx" ON "public"."Insurance"("clientId");
 
 -- CreateIndex
 CREATE INDEX "Insurance_type_status_idx" ON "public"."Insurance"("type", "status");
+
+-- CreateIndex
+CREATE INDEX "Insurance_clientId_status_idx" ON "public"."Insurance"("clientId", "status");
 
 -- AddForeignKey
 ALTER TABLE "public"."Goal" ADD CONSTRAINT "Goal_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "public"."Client"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -46,7 +46,6 @@ export async function importClientsCSV(jobId: string, fileStream: NodeJS.Readabl
                     where: { email: row.email },
                     update: {
                         name: row.name,
-                        password: row.password,
                         age: row.age,
                         status: { set: toStatusEnum(row.status) },
                         family_perfil: row.family_perfil
@@ -54,7 +53,6 @@ export async function importClientsCSV(jobId: string, fileStream: NodeJS.Readabl
                     create: {
                         name: row.name,
                         email: row.email,
-                        password: row.password,
                         age: row.age,
                         status: toStatusEnum(row.status),
                         family_perfil: row.family_perfil

@@ -13,7 +13,7 @@ export type WealthEvent  =  {
 export type InitialState = {
     initialValue: number
     startYear: number
-    utilYear: number
+    untilYear: number
     startMonth?: number
     flowTiming?: 'start' | 'end'
     clampZero?: boolean
@@ -79,7 +79,7 @@ export function simulateWealthCurve(initialState: InitialState, events: WealthEv
     const flowTiming = initialState.flowTiming ?? 'end'
     const clampZero = initialState.clampZero ?? false
 
-    if (initialState.utilYear < initialState.startYear) {
+    if (initialState.untilYear < initialState.startYear) {
         throw new Error("untilYear must be >= startYear")
     }
 
@@ -89,7 +89,7 @@ export function simulateWealthCurve(initialState: InitialState, events: WealthEv
 
     const m0 = ymIndex(initialState.startYear, startMonth)
 
-    const mN = ymIndex(initialState.utilYear, 12)
+    const mN = ymIndex(initialState.untilYear, 12)
 
     const r = monthlyRateFromAnnual(annualRate)
 

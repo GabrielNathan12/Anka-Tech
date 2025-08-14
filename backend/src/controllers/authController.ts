@@ -9,7 +9,7 @@ export async function register(req: FastifyRequest, reply: FastifyReply) {
     const emailExists = await prisma.user.findUnique({where: {email}})
 
     if(emailExists) {
-        return reply.status(400).send({email: 'Email already register'})
+        return reply.status(400).send({error: 'Email already register'})
     }
 
     const hash = await argon2.hash(password)
@@ -31,7 +31,7 @@ export async function login(req: FastifyRequest, reply: FastifyReply) {
         return reply.status(404).send({error: "Invalid credentials"})
     }
 
-    const passwordVerify = argon2.verify(user.password, password)
+    const passwordVerify = await argon2.verify(user.password, password)
     
     if(!passwordVerify) {
         return reply.status(401).send({error: 'Invalid credentials'})

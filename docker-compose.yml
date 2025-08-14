@@ -30,8 +30,8 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./backend:/app           # código do host -> container
-      - /app/node_modules        # mantém node_modules do container
+      - ./backend:/app
+      - /app/node_modules
       
 volumes:
   pg_data:

@@ -37,4 +37,4 @@ EXPOSE 8080
 # Importante: as migrações precisam do schema.prisma (está em /prisma)
 # e do DATABASE_URL (injetado via docker-compose).
 # Executa migrações, depois seed (idempotente), e sobe o servidor.
-CMD sh -c "npx prisma migrate deploy && npm run seed || true && node dist/server.js"
+CMD sh -c "npx prisma migrate deploy || true && node dist/server.js"

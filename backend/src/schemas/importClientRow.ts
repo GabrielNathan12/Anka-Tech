@@ -25,7 +25,6 @@ const booleanish = z.union([z.boolean(), z.string(), z.number()]).transform((v) 
 export const importClientRow = z.object({
     name: z.string().min(1),
     email: z.string().email(),
-    password: z.string().min(3).optional().default("changeme"),
     age: z.coerce.number().int().min(0).max(130).optional().default(0),
     status: booleanish.optional().default(true),
     family_perfil: z.string().optional().default("unknown")

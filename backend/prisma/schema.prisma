@@ -53,7 +53,6 @@ enum EventType {
   WITHDRAWAL
   CONTRIBUTION
   EXPENSE
-  REBALANCE
 }
 
 enum AlignmentCategory {
@@ -81,14 +80,15 @@ model User {
   email         String @unique
   password      String 
   role          UserRole
-  createdAt DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
 }
 
 model Client {
   id             Int       @id @default(autoincrement())
   name           String
   email          String    @unique
-  password       String
   age            Int?
   status         Status    @default(ACTIVE)
   family_perfil  String?
@@ -122,6 +122,8 @@ model Goal {
 
   @@index([clientId])
   @@index([type])
+  @@index([clientId, targetDate])
+
 }
 
 model PortfolioSnapshot {
@@ -174,6 +176,8 @@ model Event {
 
   @@index([clientId])
   @@index([frequency, startDate])
+  @@index([clientId, startDate])
+
 }
 
 model Simulation {
@@ -188,14 +192,13 @@ model Simulation {
   inputs        Json? 
   resultSeries  Json?
 
-  alignmentPercent  Decimal?  @db.Decimal(7,4)
-  alignmentCategory AlignmentCategory?
-
   createdAt     DateTime   @default(now())
 
   client        Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   @@index([clientId, createdAt])
+  @@unique([clientId, version])
+
 }
 
 model Insurance {
@@ -218,4 +221,6 @@ model Insurance {
 
   @@index([clientId])
   @@index([type, status])
+  @@index([clientId, status])
+  
 }

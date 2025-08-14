@@ -33,45 +33,59 @@ export async function recalculateAligment(clientId:number) {
 
     if(!current || !plan || Number(current.totalValue) <= 0) {
         await prisma.client.update({
-            where: {id: clientId},
+            where: { id: clientId },
             data: { alignmentPercent: null, alignmentCategory: null }
         })
 
         return { percent: null, category: null, alignedValue: null }
     }
 
-    const currentMap = new Map(current.allocations.map(a => [a.assetClass, Number(a.percent)]))
-    const planMap = new Map(plan.allocations.map(a => [a.assetClass, Number(a.percent)]))
+    // const currentMap = new Map(current.allocations.map(a => [a.assetClass, Number(a.percent)]))
+    // const planMap = new Map(plan.allocations.map(a => [a.assetClass, Number(a.percent)]))
 
-    const allClasses = new Set([...currentMap.keys(), ...planMap.keys()])
+    // const allClasses = new Set([...currentMap.keys(), ...planMap.keys()])
 
-    let alignedPercent = 0
+    // let alignedPercent = 0
 
-    for (const data of allClasses) {
-        const currentPerc = currentMap.get(data) ?? 0
-        const planPerc = planMap.get(data) ?? 0
+    // for (const data of allClasses) {
+    //     const currentPerc = currentMap.get(data) ?? 0
+    //     const planPerc = planMap.get(data) ?? 0
 
-        alignedPercent += Math.min(Number(currentPerc), Number(planPerc));
+    //     alignedPercent += Math.min(Number(currentPerc), Number(planPerc));
 
-    }
+    // }
 
-    alignedPercent = alignedPercent / 100
+    const currentTotal = Number(current.totalValue)
+    const planTotal = Number(plan.totalValue)
 
-    const alignedValue = alignedPercent * Number(current.totalValue)
+    const percent = planTotal / currentTotal
+    const category = categorizeAlignment(percent)
+    const alignedValue = percent * currentTotal
 
-    const category = categorizeAlignment(alignedPercent)
+    // alignedPercent = alignedPercent / 100
+
+    // const alignedValue = alignedPercent * Number(current.totalValue)
+
 
     await prisma.client.update({
         where: {id: clientId},
         data: {
-            alignmentPercent: new Prisma.Decimal(alignedPercent),
+            alignmentPercent: new Prisma.Decimal(percent),
             alignmentCategory: category
         }
     })
 
     return {
-            percent: alignedPercent,
+            percent: percent,
             category: category, 
             alignedValue: alignedValue
         }
+}
+
+export async function safeRecalculate(clientId: number) {
+    try {
+        return await recalculateAligment(clientId)
+    } catch {
+        return { percent: null, category: null, alignedValue: null }
+    }
 }

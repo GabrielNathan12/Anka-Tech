@@ -15,7 +15,7 @@ export const allocationItem = z.object({
 export const portfolioCreateSchema = z.object({
     clientId: z.coerce.number().int().positive(),
     kind: z.enum(["CURRENT", "PLAN"]),
-    asOfDate: z.coerce.date().optional(),
+    asOfDate: z.string().datetime().optional(),
     totalValue: z.coerce.number().nonnegative(),
     allocations: z.array(allocationItem)
 }).superRefine((val, ctx) => {

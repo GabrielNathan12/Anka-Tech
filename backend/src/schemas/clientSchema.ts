@@ -9,15 +9,9 @@ export const clientBase = z.object({
 })
 
 export const clientCreateSchema = clientBase
-            .extend({
-                password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres")
-            })
 
 export const clientUpdateSchema = clientBase
             .partial()
-            .extend({
-                password: z.string().min(6).optional()
-            })
             .refine((data) => Object.keys(data).length > 0 , {
                 message: "Envie pelo menos um campo para atualizar"
             })

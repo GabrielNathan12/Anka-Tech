@@ -30,8 +30,8 @@ export const projectionQuery = z.object({
     untilYear: z.coerce.number().int().min(1900).max(3000).default(2060),
     startYear: z.coerce.number().int().min(1900).max(3000).optional(),
     initialValue: z.coerce.number().nonnegative().optional(),
-    projectionWhithFlows: booleanish.default(false),
-    includeEvents: booleanish.default(true) 
+    includeEvents: booleanish.default(true),
+    mode: z.enum(['monthly', 'yearly']).default('monthly')
 }).refine(v => !v.startYear || v.startYear <= v.untilYear, {
     path: ['startYear'],
     message: 'startYear must be <= untilYear'

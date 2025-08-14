@@ -18,15 +18,23 @@ function formatZodError(error: z.ZodError) {
 
 export function validateBody(schema: ZodTypeAny) {
     return (req: FastifyRequest, reply: FastifyReply, done: Done) => {
-        const result = schema.safeParse((req as any).body)
-        
-        if (!result.success) {
-            return reply.status(400).send({
-                errors: formatZodError(result.error)
-            })
-        }
-        (req as any).body = result.data
+        const raw = req.body ?? {}
 
+        if (typeof raw === "object" && Object.keys(raw).length === 0) {
+            reply.status(400).send({ errors: [{ field: "_", message: "Envie pelo menos um campo para atualizar" }] })
+            return
+        }
+
+        const parsed = schema.safeParse(raw)
+        
+        if (!parsed.success) {
+            const errors = parsed.error.issues.map(i => ({ field: i.path.join("."), message: i.message }))
+
+            reply.status(400).send({ errors })
+
+            return
+        }
+        req.body = parsed.data
         done()
     }
 }

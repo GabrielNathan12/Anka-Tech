@@ -39,7 +39,7 @@ export async function createSimulation(req: FastifyRequest, reply: FastifyReply)
 
     const nextVersion = (agg._max.version ?? 0) + 1
 
-    const created = await prisma.simulation.create({
+    await prisma.simulation.create({
         data: {
             clientId: Number(clientId),
             name: body.name,

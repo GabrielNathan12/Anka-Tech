@@ -4,7 +4,7 @@ export async function getInitialValue(clientId: number, overrideInitial?: number
     if(overrideInitial != null) {
         return { 
             initial: overrideInitial,
-            asOfYear: new Date().getFullYear() 
+            asOfYear: new Date().getUTCFullYear()
         }
     }
 
@@ -20,17 +20,16 @@ export async function getInitialValue(clientId: number, overrideInitial?: number
 
     return {
         initial: Number(snap.totalValue),
-        asOfYear: new Date(snap.asOfDate).getFullYear()
+        asOfYear: new Date(snap.asOfDate).getUTCFullYear(),
     }
 }
 
 export function buildProjection(initial: number, rate: number, startYear: number, untilYear: number) {
     const series: Array<{year: number, value: number}> = []
-
+    let value = initial
+    
     for(let i = startYear; i <= untilYear; i++) {
-        const n = i - startYear
-        const value = Number((initial * Math.pow(1 + rate, n)).toFixed(2))
-
+        value = Number((value * (1 + rate)).toFixed(2))
         series.push({year: i, value: value})
     }
 
@@ -38,16 +37,16 @@ export function buildProjection(initial: number, rate: number, startYear: number
 }
 
 export function buildProjectionWithFlows(initial: number, rate: number, startYear: number, untilYear: number, yearlyFlows: Map<number, number>) {
-    const series: Array<{ year: number; value: number; flow: number }> = []
+    const series: Array<{ year: number; value: number }> = []
     let value = initial
 
     for (let y = startYear; y <= untilYear; y++) {
         value = Number((value * (1 + rate)).toFixed(2))
-
         const flow = Number((yearlyFlows.get(y) ?? 0).toFixed(2))
         value = Number((value + flow).toFixed(2))
-
-        series.push({ year: y, value, flow })
+        series.push({ year: y, value })
     }
+    
     return series
+
 }
