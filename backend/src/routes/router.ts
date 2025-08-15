@@ -1,4 +1,3 @@
-import type { FastifyInstance } from "fastify";
 import { app } from "../server";
 import { clientesRoutes } from "./clients/clientsRoutes";
 import { goalsRoutes } from "./goals/goalsRoutes";
@@ -12,7 +11,7 @@ import { authRoutes } from "./auth/authRoutes";
 import authPlugin from "../middleware/auth"
 import { suggestionsRoutes } from "./suggestions/suggestionsRoutes";
 
-export async function registerRoutes(params: FastifyInstance) {
+export async function registerRoutes() {
     await app.register(authPlugin)
     await app.register(authRoutes)
     await app.register(clientesRoutes)
