@@ -15,12 +15,15 @@ import { FormControl, FormField, FormItem, FormMessage, Form } from "@/component
 import Image from "next/image";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/context/auth";
+import 'react-toastify/dist/ReactToastify.css';
 
 type FormValues = z.infer<typeof login>
 
 export default function LoginForm() {
     const router = useRouter()
     const [showPassword, setShowPassword] = useState(false)
+    const { signIn, loading, successLogin } = useAuth()
 
     const form = useForm<FormValues>({
         resolver: zodResolver(login),
@@ -31,26 +34,16 @@ export default function LoginForm() {
         mode: 'onTouched'
     })
 
-    const { mutate: loginAuth, isPending, isSuccess, error, data} = useMutation({
-        mutationFn: authLogin,
-        onSuccess: (res) => {
-            router.push('/dashboard')
-        },
-        onError: (error) => {
-            console.log(error)
-        } 
-    })
-
     const onSubmit = (data: FormValues) => {
-        loginAuth(data)
+        signIn(data)
     }
-
     return (
-        <div className="w-full max-w-[720px] sm:max-w-[340px] p-[1px] rounded-xl bg-gradient-to-r from-[rgba(250,69,21,1)] via-[rgba(214,162,7,1)] to-[rgba(148,41,12,1)]">
+        <div className="w-full max-w-[720px] sm:max-w-[340px] 
+            p-[1px] rounded-xl bg-gradient-to-r from-[rgba(250,69,21,1)] via-[rgba(214,162,7,1)] to-[rgba(148,41,12,1)]">
             <Card className="w-full rounded-xl">
                 <CardHeader className="flex flex-col items-center gap-2">
                     <Image src='/logo_anka.png' alt="Logo Anka Tech" width={90} height={90} priority/>
-                    <CardTitle>Login</CardTitle>
+                    <CardTitle className="font-bold">Login</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>
@@ -59,7 +52,7 @@ export default function LoginForm() {
                                 <FormItem>
                                     <Label htmlFor="email">E-mail</Label>
                                     <FormControl>
-                                        <Input id="email" type="email" placeholder="exemplo@gmail.com" disabled={isPending} {...field} />
+                                        <Input id="email" type="email" placeholder="exemplo@gmail.com" disabled={loading} {...field} />
                                     </FormControl>
                                     <FormMessage/>
                                 </FormItem>
@@ -69,12 +62,13 @@ export default function LoginForm() {
                                     <Label htmlFor="password">Senha</Label>
                                     <FormControl>
                                         <div className="relative">
-                                            <Input id="password" type={ showPassword ? "text" : "password"} placeholder="******" disabled={isPending} {...field} className="pr-10"/>
-                                            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-300" tabIndex={-1}>
+                                            <Input id="password" type={ showPassword ? "text" : "password"} placeholder="******" disabled={loading} {...field} className="pr-10"/>
+                                            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-3
+                                                 flex items-center text-gray-500 hover:text-gray-300" tabIndex={-1}>
                                                 {showPassword ? (
-                                                    <EyeOff className="h-4 w-4"/>
+                                                    <EyeOff className="h-4 w-4 cursor-pointer"/>
                                                 ) : (
-                                                    <Eye className="h-4 w-4"/>
+                                                    <Eye className="h-4 w-4 cursor-pointer"/>
                                                 )}
                                             </button>
                                         </div>
@@ -82,16 +76,19 @@ export default function LoginForm() {
                                     <FormMessage/>
                                 </FormItem>
                             )}/>
-                            {error instanceof Error && (
-                                <p className="text-sm text-red-500">Erro: {error.message}</p>
-                            )}
-                            {isSuccess && (
+                            
+                            {successLogin && (
                                 <p className="text-sm text-emerald-500">Login realizado com sucesso!</p>
                             )}
 
-                            <Button type="submit" className="w-full bg-color" disabled={isPending} variant={"outline"}>
-                                {isPending ? 'Entrando...' : 'Entrar'}
+                            <Button type="submit" className="w-full bg-[rgba(250,69,21,1)] hover:bg-[rgba(148,41,12,1)] rounded-xl mt-2" disabled={loading} >
+                                {loading ? 'Entrando...' : 'Entrar'}
                             </Button>
+                            <div className="flex flex-col items-center gap-2">
+                                <Button type="button" className="wbg-color rounded-xl mt-2" disabled={loading} variant={"link"} onClick={() => router.push('/register')}>
+                                    Cadastrar
+                                </Button>
+                            </div>
                         </form>
                     </Form>
                 </CardContent>

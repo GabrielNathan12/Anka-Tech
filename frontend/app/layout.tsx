@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import ReactQueryProvider from "@/lib/react-query-provider";
+import { ToastContainer } from "react-toastify";
+import { AuthProvider } from "@/context/auth";
 
 export const metadata: Metadata = {
   title: "Anka Tech",
@@ -16,7 +18,10 @@ export default function RootLayout({
     <html lang="pt-BR" className="dark">
       <body>
         <ReactQueryProvider>
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+          <ToastContainer />
         </ReactQueryProvider>
       </body>
     </html>

@@ -13,8 +13,8 @@ interface AuthRegister  {
 
 
 export const authLogin = async ({email, password}: AuthLogin) => {
-    const res = await api.post(`${process.env.NODE_ENV}/auth/login`, {
-        email : email, password : password
+    const res = await api.post('/auth/login', {
+        email: email, password: password
     })
     return res.data
 }
